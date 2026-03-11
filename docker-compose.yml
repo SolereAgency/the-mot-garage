@@ -1,0 +1,30 @@
+services:
+  mot-garage:
+    build: .
+    container_name: mot-garage-app
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - APP_URL=${APP_URL:-https://www.furandclaws.com}
+      - PORT=3000
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+      - GOOGLE_SERVICE_ACCOUNT_BASE64=${GOOGLE_SERVICE_ACCOUNT_BASE64}
+      - GOOGLE_CALENDAR_ID=${GOOGLE_CALENDAR_ID}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
+      - DVLA_API_KEY=${DVLA_API_KEY}
+      - RETELL_API_KEY=${RETELL_API_KEY}
+      - RETELL_AGENT_ID=${RETELL_AGENT_ID}
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.motgarage.rule=Host(`www.furandclaws.com`, `furandclaws.com`)"
+      - "traefik.http.routers.motgarage.entrypoints=websecure"
+      - "traefik.http.routers.motgarage.tls.certresolver=myresolver"
+      - "traefik.http.services.motgarage.loadbalancer.server.port=3000"

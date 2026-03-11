@@ -1,0 +1,7 @@
+{
+  "name": "The MOT Garage",
+  "description": "Modern website and AI Voice Agent for The MOT Garage",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
