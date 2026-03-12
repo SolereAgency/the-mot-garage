@@ -121,11 +121,44 @@ export default function Booking() {
       alert('Payment was cancelled. Your booking was not completed.');
       localStorage.removeItem('pending_stripe_url');
       window.history.replaceState({}, document.title, window.location.pathname);
-    } else if (localStorage.getItem('pending_stripe_url')) {
-      // If we have a pending URL but no success param, we're likely in the original tab
-      setStep(4);
+    } else {
+      localStorage.removeItem('pending_stripe_url');
     }
   }, []);
+
+  // Reset form if user clicks a "Book Now" link
+  React.useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const link = target.closest('a');
+      if (link && link.getAttribute('href') === '#booking') {
+        if (step !== 1) {
+          setStep(1);
+          setSelectedService(null);
+          setSelectedDate(null);
+          setSelectedTime(null);
+          setFormData({ name: '', email: '', phone: '', reg: '', carMake: '' });
+          localStorage.removeItem('pending_stripe_url');
+        }
+      }
+    };
+    document.addEventListener('click', handleGlobalClick);
+    return () => document.removeEventListener('click', handleGlobalClick);
+  }, [step]);
+
+  // Auto-scroll to available times on mobile when a date is selected
+  React.useEffect(() => {
+    if (step === 2 && selectedDate && window.innerWidth < 1024) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById('available-times');
+        if (el) {
+          const y = el.getBoundingClientRect().top + window.scrollY - 100;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }, 250); // Give React time to render the time slots and expand the page height
+      return () => clearTimeout(timer);
+    }
+  }, [selectedDate, step]);
 
   const handleRegBlur = async () => {
     const reg = formData.reg.replace(/\s+/g, '');
@@ -338,8 +371,24 @@ export default function Booking() {
 
   const timeSlots = selectedDate && selectedService ? generateTimeSlots(selectedDate, selectedService.duration) : [];
 
-  const handleNext = () => setStep(s => s + 1);
-  const handleBack = () => setStep(s => s - 1);
+  const scrollToElement = (id: string, offset = 100) => {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) {
+        const y = el.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    }, 150);
+  };
+
+  const handleNext = () => {
+    setStep(s => s + 1);
+    scrollToElement('booking-content', 80);
+  };
+  const handleBack = () => {
+    setStep(s => s - 1);
+    scrollToElement('booking-content', 80);
+  };
 
   const generateCalendarLinks = () => {
     if (!selectedTime || !selectedService) return { google: '', outlook: '', email: '', facebook: '' };
@@ -368,7 +417,7 @@ export default function Booking() {
           <h3 className="text-4xl md:text-5xl font-bold text-white tracking-tight">Book Your Appointment</h3>
         </div>
 
-        <div className="bg-brand-gray border border-brand-border overflow-hidden">
+        <div id="booking-content" className="bg-brand-gray border border-brand-border overflow-hidden">
           {isVerifying ? (
             <div className="flex flex-col items-center justify-center p-24 min-h-[500px]">
               <div className="w-12 h-12 border-4 border-brand-accent border-t-transparent rounded-full animate-spin mb-6"></div>
@@ -434,7 +483,10 @@ export default function Booking() {
                         {availableDates.slice(0, 9).map((date, i) => (
                           <button
                             key={i}
-                            onClick={() => { setSelectedDate(date); setSelectedTime(null); }}
+                            onClick={() => { 
+                              setSelectedDate(date); 
+                              setSelectedTime(null); 
+                            }}
                             className={`p-4 border text-center transition-all duration-300 ${selectedDate && isSameDay(selectedDate, date) ? 'border-brand-accent bg-brand-accent text-white' : 'border-brand-border hover:border-brand-accent/50 text-neutral-400 hover:text-white bg-brand-dark/50'}`}
                           >
                             <div className="text-[10px] font-mono mb-1">{format(date, 'EEE')}</div>
@@ -445,7 +497,7 @@ export default function Booking() {
                       </div>
                     </div>
 
-                    <div>
+                    <div id="available-times">
                       <h5 className="text-xs font-mono text-neutral-500 mb-6 flex items-center gap-2"><Clock size={14} /> AVAILABLE TIMES</h5>
                       {selectedDate ? (
                         <div className="grid grid-cols-2 gap-3 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar">
@@ -609,6 +661,7 @@ export default function Booking() {
                     setSelectedTime(null); 
                     setFormData({name:'', email:'', phone:'', reg:'', carMake:''}); 
                     localStorage.removeItem('pending_stripe_url');
+                    scrollToElement('booking-content', 80);
                   }} className="text-brand-accent hover:text-white transition-colors text-xs font-mono font-bold">
                     BOOK ANOTHER APPOINTMENT
                   </button>
