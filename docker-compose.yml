@@ -28,7 +28,7 @@ services:
       - VITE_RETELL_PUBLIC_KEY=${VITE_RETELL_PUBLIC_KEY}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.motgarage.rule=Host(`www.furandclaws.com`) || Host(`furandclaws.com`)"
+      - "traefik.http.routers.motgarage.rule=Host(`www.solere.us`) || Host(`solere.us`)"
       - "traefik.http.routers.motgarage.entrypoints=web,websecure"
       - "traefik.http.routers.motgarage.tls=true"
       - "traefik.http.routers.motgarage.tls.certresolver=mytlschallenge"
